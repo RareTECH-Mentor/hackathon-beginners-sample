@@ -13,7 +13,7 @@ list.forEach((item) => {
   item.addEventListener("click", activeLink);
 });
 
-// バーガーメニュー用（モバイルサイズ用）
+// バーガーメニュー用（モバイルサイズ用）        #てすと
 // メニューを開く
 const openBurgerButton = document.getElementById("burger-icon");
 const closeBurgerButton = document.getElementById("burger-close-icon");
