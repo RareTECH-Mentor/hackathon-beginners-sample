@@ -110,12 +110,13 @@ class Channel:
 
 
    @classmethod
-   def update(cls, uid, new_channel_name, new_channel_description, cid):
+   def update(cls, new_channel_name, new_channel_description, cid):
        conn = db_pool.get_conn()
        try:
            with conn.cursor() as cur:
-               sql = "UPDATE channels SET uid=%s, name=%s, abstract=%s WHERE id=%s;"
-               cur.execute(sql, (uid, new_channel_name, new_channel_description, cid,))
+               # uid(作成者)は更新しない。名前と説明のみ更新する
+               sql = "UPDATE channels SET name=%s, abstract=%s WHERE id=%s;"
+               cur.execute(sql, (new_channel_name, new_channel_description, cid,))
                conn.commit()
        except pymysql.Error as e:
            print(f'エラーが発生しています：{e}')
@@ -171,6 +172,22 @@ class Message:
                cur.execute(sql, (cid,))
                messages = cur.fetchall()
                return messages
+       except pymysql.Error as e:
+           print(f'エラーが発生しています：{e}')
+           abort(500)
+       finally:
+           db_pool.release(conn)
+
+
+   @classmethod
+   def find_by_id(cls, message_id):
+       conn = db_pool.get_conn()
+       try:
+           with conn.cursor() as cur:
+               sql = "SELECT * FROM messages WHERE id=%s;"
+               cur.execute(sql, (message_id,))
+               message = cur.fetchone()
+               return message
        except pymysql.Error as e:
            print(f'エラーが発生しています：{e}')
            abort(500)

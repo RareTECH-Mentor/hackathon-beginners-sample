@@ -141,10 +141,18 @@ def update_channel(cid):
     if uid is None:
         return redirect(url_for('login_view'))
 
+    channel = Channel.find_by_cid(cid)
+    if channel is None:
+        return redirect(url_for('channels_view'))
+    # 作成者以外は編集不可（他人のチャンネルの乗っ取り・改ざんを防ぐ）
+    if channel["uid"] != uid:
+        flash('チャンネルは作成者のみ編集可能です')
+        return redirect(url_for('channels_view'))
+
     channel_name = request.form.get('channelTitle')
     channel_description = request.form.get('channelDescription')
 
-    Channel.update(uid, channel_name, channel_description, cid)
+    Channel.update(channel_name, channel_description, cid)
     return redirect(f'/channels/{cid}/messages')
 
 
@@ -157,6 +165,8 @@ def delete_channel(cid):
 
     channel = Channel.find_by_cid(cid)
 
+    if channel is None:
+        return redirect(url_for('channels_view'))
     if channel["uid"] != uid:
         flash('チャンネルは作成者のみ削除可能です')
     else:
@@ -199,8 +209,15 @@ def delete_message(cid, message_id):
     if uid is None:
         return redirect(url_for('login_view'))
 
-    if message_id:
-        Message.delete(message_id)
+    message = Message.find_by_id(message_id)
+    if message is None:
+        return redirect('/channels/{cid}/messages'.format(cid = cid))
+    # 投稿者以外は削除不可（他人のメッセージを消せないようにする）
+    if message["uid"] != uid:
+        flash('メッセージは投稿者のみ削除可能です')
+        return redirect('/channels/{cid}/messages'.format(cid = cid))
+
+    Message.delete(message_id)
     return redirect('/channels/{cid}/messages'.format(cid = cid))
 
 
